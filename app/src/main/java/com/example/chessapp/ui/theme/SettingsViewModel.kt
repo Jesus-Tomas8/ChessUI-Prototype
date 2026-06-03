@@ -13,11 +13,18 @@ class SettingsViewModel : ViewModel() {
     var isVolumeOn by mutableStateOf(true)
         private set
 
+    var isPieceSlideAnimationOn by mutableStateOf(false)
+        private set
+
     fun updateDarkMode(value: Boolean) {
         isDarkMode = value
     }
 
     fun updateVolume(value: Boolean) {
         isVolumeOn = value
+    }
+
+    fun updatePieceSlideAnimation(value: Boolean) {
+        isPieceSlideAnimationOn = value
     }
 }

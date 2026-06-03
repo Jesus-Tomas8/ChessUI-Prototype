@@ -78,6 +78,16 @@ fun OptionsScreen(
                 onCheckedChange = { settingsViewModel.updateVolume(it) }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OptionItem(
+                colors = colors,
+                title = "Piece Slide",
+                description = "Slide moved pieces across the board instead of snapping them into place.",
+                checked = settingsViewModel.isPieceSlideAnimationOn,
+                onCheckedChange = { settingsViewModel.updatePieceSlideAnimation(it) }
+            )
+
             Spacer(modifier = Modifier.height(28.dp))
 
             MainMenuButton(

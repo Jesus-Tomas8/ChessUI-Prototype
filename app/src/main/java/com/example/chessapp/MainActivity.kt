@@ -113,6 +113,8 @@ fun ChessMenuApp() {
                 "play" -> PlayScreen(
                     colors = colors,
                     playProfileViewModel = playProfileViewModel,
+                    customizationViewModel = customizationViewModel,
+                    pieceSlideAnimationEnabled = settingsViewModel.isPieceSlideAnimationOn,
                     onBackClick = { currentScreen = "main" }
                 )
 

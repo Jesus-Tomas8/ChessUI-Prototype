@@ -19,9 +19,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,15 +41,20 @@ import androidx.compose.ui.unit.sp
 fun PlayScreen(
     colors: AppColors,
     playProfileViewModel: PlayProfileViewModel,
+    customizationViewModel: CustomizationViewModel,
+    pieceSlideAnimationEnabled: Boolean,
     onBackClick: () -> Unit
 ) {
     var playDestination by remember { mutableStateOf("menu") }
+    val selectedPieceSkins by customizationViewModel.selectedPieceSkins.collectAsState()
 
     when (playDestination) {
         "twoPlayer" -> {
             ChessBoardGameScreen(
                 colors = colors,
                 mode = ChessPlayMode.TWO_PLAYER,
+                selectedPieceSkins = selectedPieceSkins,
+                pieceSlideAnimationEnabled = pieceSlideAnimationEnabled,
                 onBackClick = { playDestination = "menu" }
             )
             return
@@ -57,6 +64,8 @@ fun PlayScreen(
             ChessBoardGameScreen(
                 colors = colors,
                 mode = ChessPlayMode.SANDBOX,
+                selectedPieceSkins = selectedPieceSkins,
+                pieceSlideAnimationEnabled = pieceSlideAnimationEnabled,
                 onBackClick = { playDestination = "menu" }
             )
             return
@@ -231,6 +240,15 @@ fun PlayerIdentityCard(
                 label = { Text("Username") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = colors.text,
+                    unfocusedTextColor = colors.text,
+                    cursorColor = colors.title,
+                    focusedLabelColor = colors.title,
+                    unfocusedLabelColor = colors.secondaryText,
+                    focusedBorderColor = colors.title,
+                    unfocusedBorderColor = colors.secondaryText
+                ),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     keyboardType = KeyboardType.Text

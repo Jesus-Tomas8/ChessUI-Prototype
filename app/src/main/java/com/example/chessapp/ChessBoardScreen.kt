@@ -1,12 +1,15 @@
 package com.example.chessapp
 
 import android.content.Context
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,7 +33,11 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,13 +47,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+private const val PIECE_SLIDE_DURATION_MS = 520
 
 @Composable
 fun ChessBoardGameScreen(
     colors: AppColors,
     mode: ChessPlayMode,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>,
+    pieceSlideAnimationEnabled: Boolean,
     onBackClick: () -> Unit
 ) {
     val gameState = remember(mode) { ChessGameState(mode) }
@@ -80,7 +95,9 @@ fun ChessBoardGameScreen(
             item {
                 ChessBoard(
                     colors = colors,
-                    gameState = gameState
+                    gameState = gameState,
+                    selectedPieceSkins = selectedPieceSkins,
+                    pieceSlideAnimationEnabled = pieceSlideAnimationEnabled
                 )
             }
 
@@ -173,39 +190,80 @@ fun GameStatusCard(
 @Composable
 fun ChessBoard(
     colors: AppColors,
-    gameState: ChessGameState
+    gameState: ChessGameState,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>,
+    pieceSlideAnimationEnabled: Boolean
 ) {
     val checkedKing = gameState.kingInCheckPosition()
+    val lastMoveAnimation = gameState.lastMoveAnimation
+    var hiddenAnimationId by remember { mutableStateOf<Int?>(null) }
 
-    Column(
+    LaunchedEffect(lastMoveAnimation?.id, pieceSlideAnimationEnabled) {
+        if (pieceSlideAnimationEnabled && lastMoveAnimation != null) {
+            hiddenAnimationId = lastMoveAnimation.id
+            delay(PIECE_SLIDE_DURATION_MS.toLong())
+            hiddenAnimationId = null
+        } else {
+            hiddenAnimationId = null
+        }
+    }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .border(2.dp, colors.title, RoundedCornerShape(6.dp))
             .clip(RoundedCornerShape(6.dp))
     ) {
-        for (row in 0..7) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                for (col in 0..7) {
-                    val position = BoardPosition(row, col)
-                    ChessSquare(
-                        colors = colors,
-                        position = position,
-                        piece = gameState.board[position],
-                        isSelected = gameState.selectedPosition == position,
-                        isHighlighted = position in gameState.highlightedTargets,
-                        isCaptureHighlight = position in gameState.highlightedTargets &&
-                            gameState.board[position] != null,
-                        isCheckedKing = checkedKing == position,
-                        onClick = { gameState.onSquareTapped(position) },
-                        modifier = Modifier.weight(1f)
-                    )
+        val squareSize = maxWidth / 8
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            for (row in 0..7) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    for (col in 0..7) {
+                        val position = BoardPosition(row, col)
+                        val piece = if (
+                            pieceSlideAnimationEnabled &&
+                            hiddenAnimationId == lastMoveAnimation?.id &&
+                            lastMoveAnimation?.to == position
+                        ) {
+                            null
+                        } else {
+                            gameState.board[position]
+                        }
+
+                        ChessSquare(
+                            colors = colors,
+                            position = position,
+                            piece = piece,
+                            isSelected = gameState.selectedPosition == position,
+                            isHighlighted = position in gameState.highlightedTargets,
+                            isCaptureHighlight = position in gameState.highlightedTargets &&
+                                gameState.board[position] != null,
+                            isCheckedKing = checkedKing == position,
+                            selectedPieceSkins = selectedPieceSkins,
+                            onClick = { gameState.onSquareTapped(position) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
+        }
+
+        if (
+            pieceSlideAnimationEnabled &&
+            hiddenAnimationId == lastMoveAnimation?.id &&
+            lastMoveAnimation != null
+        ) {
+            MovingPieceOverlay(
+                moveAnimation = lastMoveAnimation,
+                squareSize = squareSize,
+                selectedPieceSkins = selectedPieceSkins
+            )
         }
     }
 }
@@ -219,6 +277,7 @@ fun ChessSquare(
     isHighlighted: Boolean,
     isCaptureHighlight: Boolean,
     isCheckedKing: Boolean,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -244,7 +303,10 @@ fun ChessSquare(
         contentAlignment = Alignment.Center
     ) {
         piece?.let {
-            ChessPieceView(piece = it)
+            ChessPieceView(
+                piece = it,
+                selectedPieceSkins = selectedPieceSkins
+            )
         }
 
         if (isHighlighted && !isCaptureHighlight) {
@@ -268,17 +330,64 @@ fun ChessSquare(
 }
 
 @Composable
-fun ChessPieceView(piece: ChessPiece) {
+fun MovingPieceOverlay(
+    moveAnimation: ChessMoveAnimation,
+    squareSize: Dp,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>
+) {
+    val xOffset = remember { Animatable(0f) }
+    val yOffset = remember { Animatable(0f) }
+    val startX = (moveAnimation.from.col - moveAnimation.to.col).toFloat()
+    val startY = (moveAnimation.from.row - moveAnimation.to.row).toFloat()
+
+    LaunchedEffect(moveAnimation.id) {
+        xOffset.snapTo(startX)
+        yOffset.snapTo(startY)
+        launch {
+            xOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = PIECE_SLIDE_DURATION_MS)
+            )
+        }
+        yOffset.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = PIECE_SLIDE_DURATION_MS)
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .size(squareSize)
+            .offset(
+                x = ((moveAnimation.to.col + xOffset.value) * squareSize.value).dp,
+                y = ((moveAnimation.to.row + yOffset.value) * squareSize.value).dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        ChessPieceView(
+            piece = moveAnimation.piece,
+            selectedPieceSkins = selectedPieceSkins
+        )
+    }
+}
+
+@Composable
+fun ChessPieceView(
+    piece: ChessPiece,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
-    val drawableId = remember(piece.side, piece.type) {
-        pieceDrawableResource(context, piece)
+    val selectedSkin = selectedPieceSkins[PieceSkinKey(piece.side, piece.type)]
+    val drawableId = remember(piece.side, piece.type, selectedSkin?.id) {
+        selectedSkin?.imageRes ?: pieceDrawableResource(context, piece)
     }
 
     if (drawableId != 0) {
         Image(
             painter = painterResource(id = drawableId),
             contentDescription = "${piece.side.label} ${piece.type.label}",
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .padding(5.dp),
             contentScale = ContentScale.Fit
@@ -289,10 +398,12 @@ fun ChessPieceView(piece: ChessPiece) {
             fontSize = 34.sp,
             fontWeight = FontWeight.Bold,
             color = if (piece.side == ChessSide.WHITE) Color(0xFFFDF7EA) else Color(0xFF1C1A17),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = modifier
         )
     }
 }
+
 
 fun pieceDrawableResource(context: Context, piece: ChessPiece): Int {
     val sidePrefix = if (piece.side == ChessSide.WHITE) "wh" else "bl"

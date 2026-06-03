@@ -48,6 +48,13 @@ enum class ChessPlayMode {
     SANDBOX
 }
 
+data class ChessMoveAnimation(
+    val id: Int,
+    val piece: ChessPiece,
+    val from: BoardPosition,
+    val to: BoardPosition
+)
+
 class ChessGameState(private val playMode: ChessPlayMode) {
     var board by mutableStateOf(standardBoard())
         private set
@@ -75,6 +82,11 @@ class ChessGameState(private val playMode: ChessPlayMode) {
 
     var setupEraseMode by mutableStateOf(false)
         private set
+
+    var lastMoveAnimation by mutableStateOf<ChessMoveAnimation?>(null)
+        private set
+
+    private var moveAnimationId = 0
 
     val moveHistory = mutableStateListOf<String>()
 
@@ -119,6 +131,7 @@ class ChessGameState(private val playMode: ChessPlayMode) {
         board = standardBoard()
         turn = ChessSide.WHITE
         moveHistory.clear()
+        lastMoveAnimation = null
         sandboxSetupMode = playMode == ChessPlayMode.SANDBOX
         clearSelection()
         statusText = if (sandboxSetupMode) {
@@ -134,6 +147,7 @@ class ChessGameState(private val playMode: ChessPlayMode) {
         board = emptyMap()
         turn = ChessSide.WHITE
         moveHistory.clear()
+        lastMoveAnimation = null
         clearSelection()
         statusText = "Board cleared. Place pieces to test a strategy."
     }
@@ -200,6 +214,14 @@ class ChessGameState(private val playMode: ChessPlayMode) {
             .minus(from)
             .plus(to to promotedPiece)
 
+        moveAnimationId += 1
+        lastMoveAnimation = ChessMoveAnimation(
+            id = moveAnimationId,
+            piece = promotedPiece,
+            from = from,
+            to = to
+        )
+
         val moveText = buildMoveText(movingPiece, from, to, capturedPiece, promotedPiece)
         moveHistory.add(0, moveText)
         turn = turn.opposite()
@@ -226,6 +248,7 @@ class ChessGameState(private val playMode: ChessPlayMode) {
             board.plus(position to ChessPiece(setupSide, setupPieceType))
         }
 
+        lastMoveAnimation = null
         clearSelection()
         statusText = if (setupEraseMode) {
             "Removed piece from ${position.toAlgebraic()}."

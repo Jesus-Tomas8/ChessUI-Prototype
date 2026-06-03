@@ -9,20 +9,25 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,8 +44,20 @@ fun CustomizeScreen(
     customizationViewModel: CustomizationViewModel,
     onBackClick: () -> Unit
 ) {
-    val selectedWhitePawnSkin by customizationViewModel.selectedWhitePawnSkin.collectAsState()
-    val selectedBlackPawnSkin by customizationViewModel.selectedBlackPawnSkin.collectAsState()
+    val selectedPieceSkins by customizationViewModel.selectedPieceSkins.collectAsState()
+    var selectedPieceType by remember { mutableStateOf<ChessPieceType?>(null) }
+
+    selectedPieceType?.let { pieceType ->
+        PieceSkinDetailScreen(
+            colors = colors,
+            pieceType = pieceType,
+            selectedPieceSkins = selectedPieceSkins,
+            customizationViewModel = customizationViewModel,
+            onBackToPiecesClick = { selectedPieceType = null },
+            onBackClick = onBackClick
+        )
+        return
+    }
 
     Box(
         modifier = Modifier
@@ -66,7 +83,7 @@ fun CustomizeScreen(
 
             item {
                 Text(
-                    text = "Choose which pawn design each side will use on the board.",
+                    text = "Choose which piece art each side will use on the board.",
                     fontSize = 16.sp,
                     color = colors.text,
                     textAlign = TextAlign.Center,
@@ -74,27 +91,25 @@ fun CustomizeScreen(
                 )
             }
 
-            item {
-                PawnSkinSection(
-                    colors = colors,
-                    title = "White Pawn",
-                    pawnSkins = customizationViewModel.whitePawnSkins,
-                    selectedPawnSkin = selectedWhitePawnSkin,
-                    onPawnSkinClick = { pawnSkin ->
-                        customizationViewModel.selectWhitePawnSkin(pawnSkin)
-                    }
-                )
+            customizationViewModel.customizablePieceTypes.forEach { pieceType ->
+                item {
+                    PieceSkinMenuCard(
+                        colors = colors,
+                        pieceType = pieceType,
+                        selectedWhiteSkin = selectedPieceSkins[PieceSkinKey(ChessSide.WHITE, pieceType)],
+                        selectedBlackSkin = selectedPieceSkins[PieceSkinKey(ChessSide.BLACK, pieceType)],
+                        onClick = { selectedPieceType = pieceType }
+                    )
+                }
             }
 
             item {
-                PawnSkinSection(
-                    colors = colors,
-                    title = "Black Pawn",
-                    pawnSkins = customizationViewModel.blackPawnSkins,
-                    selectedPawnSkin = selectedBlackPawnSkin,
-                    onPawnSkinClick = { pawnSkin ->
-                        customizationViewModel.selectBlackPawnSkin(pawnSkin)
-                    }
+                Text(
+                    text = "More piece types can use this same skin system as new art is added.",
+                    fontSize = 14.sp,
+                    color = colors.secondaryText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
             }
 
@@ -110,53 +125,296 @@ fun CustomizeScreen(
 }
 
 @Composable
-fun PawnSkinSection(
+fun PieceSkinMenuCard(
     colors: AppColors,
-    title: String,
-    pawnSkins: List<PawnSkin>,
-    selectedPawnSkin: PawnSkin,
-    onPawnSkinClick: (PawnSkin) -> Unit
+    pieceType: ChessPieceType,
+    selectedWhiteSkin: PieceSkin?,
+    selectedBlackSkin: PieceSkin?,
+    onClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-        Text(
-            text = title,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = colors.title,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "${pieceType.label} Skins",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.title
+                )
 
-        pawnSkins.forEach { pawnSkin ->
-            PawnSkinSelectionCard(
-                colors = colors,
-                pawnSkin = pawnSkin,
-                isSelected = pawnSkin.id == selectedPawnSkin.id,
-                onClick = {
-                    onPawnSkinClick(pawnSkin)
+                Text(
+                    text = "White: ${selectedWhiteSkin?.collectionName ?: "None"}",
+                    fontSize = 13.sp,
+                    color = colors.secondaryText
+                )
+
+                Text(
+                    text = "Black: ${selectedBlackSkin?.collectionName ?: "None"}",
+                    fontSize = 13.sp,
+                    color = colors.secondaryText
+                )
+
+                Button(
+                    onClick = onClick,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.button,
+                        contentColor = colors.buttonText
+                    )
+                ) {
+                    Text("Open")
                 }
+            }
+
+            CurrentSkinPreview(
+                colors = colors,
+                label = "W",
+                pieceSkin = selectedWhiteSkin,
+                modifier = Modifier.weight(0.7f)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            CurrentSkinPreview(
+                colors = colors,
+                label = "B",
+                pieceSkin = selectedBlackSkin,
+                modifier = Modifier.weight(0.7f)
+            )
         }
     }
 }
 
 @Composable
-fun PawnSkinSelectionCard(
+fun PieceSkinDetailScreen(
     colors: AppColors,
-    pawnSkin: PawnSkin,
+    pieceType: ChessPieceType,
+    selectedPieceSkins: Map<PieceSkinKey, PieceSkin>,
+    customizationViewModel: CustomizationViewModel,
+    onBackToPiecesClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background)
+            .padding(16.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 32.dp, bottom = 24.dp)
+        ) {
+            item {
+                Text(
+                    text = "${pieceType.label} Skins",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.title,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            item {
+                CurrentPieceSkinCard(
+                    colors = colors,
+                    pieceType = pieceType,
+                    selectedWhiteSkin = selectedPieceSkins[PieceSkinKey(ChessSide.WHITE, pieceType)],
+                    selectedBlackSkin = selectedPieceSkins[PieceSkinKey(ChessSide.BLACK, pieceType)]
+                )
+            }
+
+            ChessSide.values().forEach { side ->
+                val availableSkins = customizationViewModel.availableSkinsFor(side, pieceType)
+                val selectedSkin = selectedPieceSkins[PieceSkinKey(side, pieceType)]
+
+                if (availableSkins.isNotEmpty() && selectedSkin != null) {
+                    item {
+                        PieceSkinOptionRow(
+                            colors = colors,
+                            title = "${side.label} ${pieceType.label}",
+                            pieceSkins = availableSkins,
+                            selectedPieceSkin = selectedSkin,
+                            onPieceSkinClick = { pieceSkin ->
+                                customizationViewModel.selectPieceSkin(pieceSkin)
+                            }
+                        )
+                    }
+                }
+            }
+
+            item {
+                MainMenuButton(
+                    text = "Back to Pieces",
+                    colors = colors,
+                    onClick = onBackToPiecesClick
+                )
+            }
+
+            item {
+                MainMenuButton(
+                    text = "Back to Main Menu",
+                    colors = colors,
+                    onClick = onBackClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CurrentPieceSkinCard(
+    colors: AppColors,
+    pieceType: ChessPieceType,
+    selectedWhiteSkin: PieceSkin?,
+    selectedBlackSkin: PieceSkin?
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Current ${pieceType.label} Set",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.text
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CurrentSkinPreview(
+                    colors = colors,
+                    label = "White",
+                    pieceSkin = selectedWhiteSkin,
+                    modifier = Modifier.weight(1f)
+                )
+
+                CurrentSkinPreview(
+                    colors = colors,
+                    label = "Black",
+                    pieceSkin = selectedBlackSkin,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CurrentSkinPreview(
+    colors: AppColors,
+    label: String,
+    pieceSkin: PieceSkin?,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(colors.background, RoundedCornerShape(14.dp))
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (pieceSkin != null) {
+            Image(
+                painter = painterResource(id = pieceSkin.imageRes),
+                contentDescription = pieceSkin.name,
+                modifier = Modifier.size(82.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.text,
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = pieceSkin?.name ?: "No skin",
+            fontSize = 12.sp,
+            color = colors.secondaryText,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun PieceSkinOptionRow(
+    colors: AppColors,
+    title: String,
+    pieceSkins: List<PieceSkin>,
+    selectedPieceSkin: PieceSkin,
+    onPieceSkinClick: (PieceSkin) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.text
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(pieceSkins) { pieceSkin ->
+                PieceSkinSelectionCard(
+                    colors = colors,
+                    pieceSkin = pieceSkin,
+                    isSelected = pieceSkin.id == selectedPieceSkin.id,
+                    onClick = {
+                        onPieceSkinClick(pieceSkin)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PieceSkinSelectionCard(
+    colors: AppColors,
+    pieceSkin: PieceSkin,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
     val borderColor = if (isSelected) colors.title else Color.Transparent
-    val statusText = if (isSelected) "Selected" else "Tap to Select"
-    val statusColor = if (isSelected) colors.title else colors.text
+    val statusText = if (isSelected) "Selected" else pieceSkin.collectionName
+    val statusColor = if (isSelected) colors.title else colors.secondaryText
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .size(width = 168.dp, height = 188.dp)
             .clickable { onClick() }
             .border(
                 width = 3.dp,
@@ -168,39 +426,34 @@ fun PawnSkinSelectionCard(
             containerColor = colors.card
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Image(
-                painter = painterResource(id = pawnSkin.imageRes),
-                contentDescription = pawnSkin.name,
-                modifier = Modifier.size(120.dp),
+                painter = painterResource(id = pieceSkin.imageRes),
+                contentDescription = pieceSkin.name,
+                modifier = Modifier.size(92.dp),
                 contentScale = ContentScale.Fit
             )
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 18.dp)
-            ) {
-                Text(
-                    text = pawnSkin.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.text
-                )
+            Text(
+                text = pieceSkin.name,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.text,
+                textAlign = TextAlign.Center
+            )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = statusText,
-                    fontSize = 16.sp,
-                    color = statusColor
-                )
-            }
+            Text(
+                text = statusText,
+                fontSize = 13.sp,
+                color = statusColor,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
