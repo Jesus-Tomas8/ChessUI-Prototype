@@ -17,10 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -132,13 +128,11 @@ fun PieceSkinMenuCard(
     selectedBlackSkin: PieceSkin?,
     onClick: () -> Unit
 ) {
-    Card(
+    PrototypeCard(
+        colors = colors,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier
@@ -170,16 +164,13 @@ fun PieceSkinMenuCard(
                     color = colors.secondaryText
                 )
 
-                Button(
-                    onClick = onClick,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.button,
-                        contentColor = colors.buttonText
-                    )
-                ) {
-                    Text("Open")
-                }
+                PrimaryActionButton(
+                    text = "Open",
+                    colors = colors,
+                    fontSize = 14.sp,
+                    verticalPadding = 2.dp,
+                    onClick = onClick
+                )
             }
 
             CurrentSkinPreview(
@@ -284,12 +275,7 @@ fun CurrentPieceSkinCard(
     selectedWhiteSkin: PieceSkin?,
     selectedBlackSkin: PieceSkin?
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
+    PrototypeCard(colors = colors) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -412,7 +398,8 @@ fun PieceSkinSelectionCard(
     val statusText = if (isSelected) "Selected" else pieceSkin.collectionName
     val statusColor = if (isSelected) colors.title else colors.secondaryText
 
-    Card(
+    PrototypeCard(
+        colors = colors,
         modifier = Modifier
             .size(width = 168.dp, height = 188.dp)
             .clickable { onClick() }
@@ -421,10 +408,7 @@ fun PieceSkinSelectionCard(
                 color = borderColor,
                 shape = RoundedCornerShape(18.dp)
             ),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = colors.card
-        )
+        elevation = 0.dp
     ) {
         Column(
             modifier = Modifier

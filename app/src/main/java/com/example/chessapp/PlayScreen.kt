@@ -14,10 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -140,12 +136,7 @@ fun PlayModeCard(
     onTwoPlayerClick: () -> Unit,
     onSandboxClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
+    PrototypeCard(colors = colors) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -165,37 +156,17 @@ fun PlayModeCard(
                 color = colors.secondaryText
             )
 
-            Button(
-                onClick = onTwoPlayerClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.button,
-                    contentColor = colors.buttonText
-                )
-            ) {
-                Text(
-                    text = "Two Player",
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-            }
+            PrimaryActionButton(
+                text = "Two Player",
+                colors = colors,
+                onClick = onTwoPlayerClick
+            )
 
-            Button(
-                onClick = onSandboxClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.button,
-                    contentColor = colors.buttonText
-                )
-            ) {
-                Text(
-                    text = "Sandbox",
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-            }
+            PrimaryActionButton(
+                text = "Sandbox",
+                colors = colors,
+                onClick = onSandboxClick
+            )
         }
     }
 }
@@ -209,12 +180,7 @@ fun PlayerIdentityCard(
     onUsernameChange: (String) -> Unit,
     onSaveClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
+    PrototypeCard(colors = colors) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -266,21 +232,11 @@ fun PlayerIdentityCard(
                 color = colors.secondaryText
             )
 
-            Button(
-                onClick = onSaveClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.button,
-                    contentColor = colors.buttonText
-                )
-            ) {
-                Text(
-                    text = if (profile == null) "Create Profile" else "Update Profile",
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-            }
+            PrimaryActionButton(
+                text = if (profile == null) "Create Profile" else "Update Profile",
+                colors = colors,
+                onClick = onSaveClick
+            )
         }
     }
 }
@@ -327,12 +283,7 @@ fun MatchmakingCard(
     onFindMatchClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
+    PrototypeCard(colors = colors) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -378,21 +329,11 @@ fun MatchmakingCard(
                     )
                 }
             } else {
-                Button(
-                    onClick = onFindMatchClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.button,
-                        contentColor = colors.buttonText
-                    )
-                ) {
-                    Text(
-                        text = "Find Match",
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
+                PrimaryActionButton(
+                    text = "Find Match",
+                    colors = colors,
+                    onClick = onFindMatchClick
+                )
             }
 
             Spacer(modifier = Modifier.height(2.dp))
