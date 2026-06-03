@@ -39,6 +39,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -415,80 +417,32 @@ fun PieceCard(
 }
 
 @Composable
-fun SimpleScreen(
-    colors: AppColors,
-    title: String,
-    description: String,
-    onBackClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = colors.title,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = description,
-                fontSize = 18.sp,
-                color = colors.text,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
-
-            MainMenuButton(
-                text = "Local Play",
-                colors = colors,
-                onClick = {
-                    // Placeholder for local play
-                }
-            )
-
-            MainMenuButton(
-                text = "Online Play",
-                colors = colors,
-                onClick = {
-                    // Placeholder for online play
-                }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            MainMenuButton(
-                text = "Back to Main Menu",
-                colors = colors,
-                onClick = onBackClick
-            )
-        }
-    }
-}
-
-@Composable
 fun MainMenuButton(
     text: String,
     colors: AppColors,
     onClick: () -> Unit
 ) {
+    PrimaryActionButton(
+        text = text,
+        colors = colors,
+        fontSize = 20.sp,
+        verticalPadding = 8.dp,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun PrimaryActionButton(
+    text: String,
+    colors: AppColors,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    fontSize: TextUnit = 18.sp,
+    verticalPadding: Dp = 6.dp,
+    onClick: () -> Unit
+) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
@@ -498,8 +452,26 @@ fun MainMenuButton(
     ) {
         Text(
             text = text,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(vertical = 8.dp)
+            fontSize = fontSize,
+            modifier = Modifier.padding(vertical = verticalPadding)
         )
+    }
+}
+
+@Composable
+fun PrototypeCard(
+    colors: AppColors,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    cornerRadius: Dp = 18.dp,
+    elevation: Dp = 6.dp,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(cornerRadius),
+        colors = CardDefaults.cardColors(containerColor = colors.card),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
+    ) {
+        content()
     }
 }

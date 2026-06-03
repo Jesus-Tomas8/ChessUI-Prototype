@@ -24,14 +24,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +48,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val PIECE_SLIDE_DURATION_MS = 520
+private const val PIECE_SLIDE_DURATION_MS = 1040
 
 @Composable
 fun ChessBoardGameScreen(
@@ -123,29 +118,23 @@ fun ChessBoardGameScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Button(
-                        onClick = gameState::resetStandardGame,
+                    PrimaryActionButton(
+                        text = "Reset",
+                        colors = colors,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.button,
-                            contentColor = colors.buttonText
-                        )
-                    ) {
-                        Text("Reset")
-                    }
+                        fontSize = 16.sp,
+                        verticalPadding = 2.dp,
+                        onClick = gameState::resetStandardGame
+                    )
 
-                    Button(
-                        onClick = onBackClick,
+                    PrimaryActionButton(
+                        text = "Back",
+                        colors = colors,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.button,
-                            contentColor = colors.buttonText
-                        )
-                    ) {
-                        Text("Back")
-                    }
+                        fontSize = 16.sp,
+                        verticalPadding = 2.dp,
+                        onClick = onBackClick
+                    )
                 }
             }
         }
@@ -157,12 +146,7 @@ fun GameStatusCard(
     colors: AppColors,
     gameState: ChessGameState
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
+    PrototypeCard(colors = colors, cornerRadius = 12.dp, elevation = 4.dp) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -196,15 +180,18 @@ fun ChessBoard(
 ) {
     val checkedKing = gameState.kingInCheckPosition()
     val lastMoveAnimation = gameState.lastMoveAnimation
-    var hiddenAnimationId by remember { mutableStateOf<Int?>(null) }
+    var completedAnimationId by remember { mutableStateOf<Int?>(null) }
+    val activeMoveAnimation = lastMoveAnimation?.takeIf {
+        pieceSlideAnimationEnabled && completedAnimationId != it.id
+    }
 
     LaunchedEffect(lastMoveAnimation?.id, pieceSlideAnimationEnabled) {
         if (pieceSlideAnimationEnabled && lastMoveAnimation != null) {
-            hiddenAnimationId = lastMoveAnimation.id
+            completedAnimationId = null
             delay(PIECE_SLIDE_DURATION_MS.toLong())
-            hiddenAnimationId = null
+            completedAnimationId = lastMoveAnimation.id
         } else {
-            hiddenAnimationId = null
+            completedAnimationId = null
         }
     }
 
@@ -227,9 +214,8 @@ fun ChessBoard(
                     for (col in 0..7) {
                         val position = BoardPosition(row, col)
                         val piece = if (
-                            pieceSlideAnimationEnabled &&
-                            hiddenAnimationId == lastMoveAnimation?.id &&
-                            lastMoveAnimation?.to == position
+                            activeMoveAnimation != null &&
+                            activeMoveAnimation.to == position
                         ) {
                             null
                         } else {
@@ -254,13 +240,9 @@ fun ChessBoard(
             }
         }
 
-        if (
-            pieceSlideAnimationEnabled &&
-            hiddenAnimationId == lastMoveAnimation?.id &&
-            lastMoveAnimation != null
-        ) {
+        if (activeMoveAnimation != null) {
             MovingPieceOverlay(
-                moveAnimation = lastMoveAnimation,
+                moveAnimation = activeMoveAnimation,
                 squareSize = squareSize,
                 selectedPieceSkins = selectedPieceSkins
             )
@@ -335,10 +317,10 @@ fun MovingPieceOverlay(
     squareSize: Dp,
     selectedPieceSkins: Map<PieceSkinKey, PieceSkin>
 ) {
-    val xOffset = remember { Animatable(0f) }
-    val yOffset = remember { Animatable(0f) }
     val startX = (moveAnimation.from.col - moveAnimation.to.col).toFloat()
     val startY = (moveAnimation.from.row - moveAnimation.to.row).toFloat()
+    val xOffset = remember(moveAnimation.id) { Animatable(startX) }
+    val yOffset = remember(moveAnimation.id) { Animatable(startY) }
 
     LaunchedEffect(moveAnimation.id) {
         xOffset.snapTo(startX)
@@ -430,12 +412,7 @@ fun SandboxControls(
     colors: AppColors,
     gameState: ChessGameState
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
+    PrototypeCard(colors = colors, cornerRadius = 12.dp, elevation = 4.dp) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -444,29 +421,23 @@ fun SandboxControls(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Button(
-                    onClick = gameState::toggleSandboxMode,
+                PrimaryActionButton(
+                    text = if (gameState.sandboxSetupMode) "Test Moves" else "Edit Setup",
+                    colors = colors,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.button,
-                        contentColor = colors.buttonText
-                    )
-                ) {
-                    Text(if (gameState.sandboxSetupMode) "Test Moves" else "Edit Setup")
-                }
+                    fontSize = 15.sp,
+                    verticalPadding = 2.dp,
+                    onClick = gameState::toggleSandboxMode
+                )
 
-                Button(
-                    onClick = gameState::clearSandboxBoard,
+                PrimaryActionButton(
+                    text = "Clear",
+                    colors = colors,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.button,
-                        contentColor = colors.buttonText
-                    )
-                ) {
-                    Text("Clear")
-                }
+                    fontSize = 15.sp,
+                    verticalPadding = 2.dp,
+                    onClick = gameState::clearSandboxBoard
+                )
             }
 
             Text(
@@ -597,11 +568,7 @@ fun CapturedPiecesCard(
     colors: AppColors,
     gameState: ChessGameState
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card)
-    ) {
+    PrototypeCard(colors = colors, cornerRadius = 12.dp, elevation = 0.dp) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -646,11 +613,7 @@ fun MoveHistoryCard(
     colors: AppColors,
     gameState: ChessGameState
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.card)
-    ) {
+    PrototypeCard(colors = colors, cornerRadius = 12.dp, elevation = 0.dp) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)

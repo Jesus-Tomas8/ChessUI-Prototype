@@ -14,118 +14,20 @@ class CustomizationViewModel(application: Application) : AndroidViewModel(applic
     )
 
     val pieceSkins = listOf(
-        PieceSkin(
-            id = "white_pawn",
-            name = "Classic White Pawn",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.PAWN,
-            collectionName = "Classic",
-            imageRes = R.drawable.white_pawn
-        ),
-        PieceSkin(
-            id = "white_pawn_mx",
-            name = "MX White Pawn",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.PAWN,
-            collectionName = "Mexican",
-            imageRes = R.drawable.white_pawn_mx
-        ),
-        PieceSkin(
-            id = "black_pawn",
-            name = "Classic Black Pawn",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.PAWN,
-            collectionName = "Classic",
-            imageRes = R.drawable.black_pawn
-        ),
-        PieceSkin(
-            id = "black_pawn_mx",
-            name = "MX Black Pawn",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.PAWN,
-            collectionName = "Mexican",
-            imageRes = R.drawable.black_pawn_mx
-        ),
-        PieceSkin(
-            id = "wh_king_classic",
-            name = "Classic White King",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.KING,
-            collectionName = "Classic",
-            imageRes = R.drawable.wh_king_classic
-        ),
-        PieceSkin(
-            id = "bl_king_classic",
-            name = "Classic Black King",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.KING,
-            collectionName = "Classic",
-            imageRes = R.drawable.bl_king_classic
-        ),
-        PieceSkin(
-            id = "wh_queen_classic",
-            name = "Classic White Queen",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.QUEEN,
-            collectionName = "Classic",
-            imageRes = R.drawable.wh_queen_classic
-        ),
-        PieceSkin(
-            id = "bl_queen_classic",
-            name = "Classic Black Queen",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.QUEEN,
-            collectionName = "Classic",
-            imageRes = R.drawable.bl_queen_classic
-        ),
-        PieceSkin(
-            id = "wh_rook_classic",
-            name = "Classic White Rook",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.ROOK,
-            collectionName = "Classic",
-            imageRes = R.drawable.wh_rook_classic
-        ),
-        PieceSkin(
-            id = "bl_rook_classic",
-            name = "Classic Black Rook",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.ROOK,
-            collectionName = "Classic",
-            imageRes = R.drawable.bl_rook_classic
-        ),
-        PieceSkin(
-            id = "wh_bishop_classic",
-            name = "Classic White Bishop",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.BISHOP,
-            collectionName = "Classic",
-            imageRes = R.drawable.wh_bishop_classic
-        ),
-        PieceSkin(
-            id = "bl_bishop_classic",
-            name = "Classic Black Bishop",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.BISHOP,
-            collectionName = "Classic",
-            imageRes = R.drawable.bl_bishop_classic
-        ),
-        PieceSkin(
-            id = "wh_knight_classic",
-            name = "Classic White Knight",
-            side = ChessSide.WHITE,
-            pieceType = ChessPieceType.KNIGHT,
-            collectionName = "Classic",
-            imageRes = R.drawable.wh_knight_classic
-        ),
-        PieceSkin(
-            id = "bl_knight_classic",
-            name = "Classic Black Knight",
-            side = ChessSide.BLACK,
-            pieceType = ChessPieceType.KNIGHT,
-            collectionName = "Classic",
-            imageRes = R.drawable.bl_knight_classic
-        )
+        skin("white_pawn", "Classic White Pawn", ChessSide.WHITE, ChessPieceType.PAWN, "Classic", R.drawable.white_pawn),
+        skin("white_pawn_mx", "MX White Pawn", ChessSide.WHITE, ChessPieceType.PAWN, "Mexican", R.drawable.white_pawn_mx),
+        skin("black_pawn", "Classic Black Pawn", ChessSide.BLACK, ChessPieceType.PAWN, "Classic", R.drawable.black_pawn),
+        skin("black_pawn_mx", "MX Black Pawn", ChessSide.BLACK, ChessPieceType.PAWN, "Mexican", R.drawable.black_pawn_mx),
+        skin("wh_king_classic", "Classic White King", ChessSide.WHITE, ChessPieceType.KING, "Classic", R.drawable.wh_king_classic),
+        skin("bl_king_classic", "Classic Black King", ChessSide.BLACK, ChessPieceType.KING, "Classic", R.drawable.bl_king_classic),
+        skin("wh_queen_classic", "Classic White Queen", ChessSide.WHITE, ChessPieceType.QUEEN, "Classic", R.drawable.wh_queen_classic),
+        skin("bl_queen_classic", "Classic Black Queen", ChessSide.BLACK, ChessPieceType.QUEEN, "Classic", R.drawable.bl_queen_classic),
+        skin("wh_rook_classic", "Classic White Rook", ChessSide.WHITE, ChessPieceType.ROOK, "Classic", R.drawable.wh_rook_classic),
+        skin("bl_rook_classic", "Classic Black Rook", ChessSide.BLACK, ChessPieceType.ROOK, "Classic", R.drawable.bl_rook_classic),
+        skin("wh_bishop_classic", "Classic White Bishop", ChessSide.WHITE, ChessPieceType.BISHOP, "Classic", R.drawable.wh_bishop_classic),
+        skin("bl_bishop_classic", "Classic Black Bishop", ChessSide.BLACK, ChessPieceType.BISHOP, "Classic", R.drawable.bl_bishop_classic),
+        skin("wh_knight_classic", "Classic White Knight", ChessSide.WHITE, ChessPieceType.KNIGHT, "Classic", R.drawable.wh_knight_classic),
+        skin("bl_knight_classic", "Classic Black Knight", ChessSide.BLACK, ChessPieceType.KNIGHT, "Classic", R.drawable.bl_knight_classic)
     )
 
     val customizablePieceTypes = listOf(
@@ -146,11 +48,6 @@ class CustomizationViewModel(application: Application) : AndroidViewModel(applic
         return skinsByKey[PieceSkinKey(side, pieceType)].orEmpty()
     }
 
-    fun selectedSkinFor(side: ChessSide, pieceType: ChessPieceType): PieceSkin? {
-        val key = PieceSkinKey(side, pieceType)
-        return _selectedPieceSkins.value[key] ?: skinsByKey[key]?.firstOrNull()
-    }
-
     fun selectPieceSkin(pieceSkin: PieceSkin) {
         val key = PieceSkinKey(pieceSkin.side, pieceSkin.pieceType)
         _selectedPieceSkins.value = _selectedPieceSkins.value + (key to pieceSkin)
@@ -165,5 +62,23 @@ class CustomizationViewModel(application: Application) : AndroidViewModel(applic
             val savedSkinId = preferences.getString(key.preferenceKey, null)
             skins.firstOrNull { skin -> skin.id == savedSkinId } ?: skins.first()
         }
+    }
+
+    private fun skin(
+        id: String,
+        name: String,
+        side: ChessSide,
+        pieceType: ChessPieceType,
+        collectionName: String,
+        imageRes: Int
+    ): PieceSkin {
+        return PieceSkin(
+            id = id,
+            name = name,
+            side = side,
+            pieceType = pieceType,
+            collectionName = collectionName,
+            imageRes = imageRes
+        )
     }
 }
