@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val PIECE_SLIDE_DURATION_MS = 520
+private const val PIECE_SLIDE_DURATION_MS = 1040
 
 @Composable
 fun ChessBoardGameScreen(
@@ -196,15 +196,18 @@ fun ChessBoard(
 ) {
     val checkedKing = gameState.kingInCheckPosition()
     val lastMoveAnimation = gameState.lastMoveAnimation
-    var hiddenAnimationId by remember { mutableStateOf<Int?>(null) }
+    var completedAnimationId by remember { mutableStateOf<Int?>(null) }
+    val activeMoveAnimation = lastMoveAnimation?.takeIf {
+        pieceSlideAnimationEnabled && completedAnimationId != it.id
+    }
 
     LaunchedEffect(lastMoveAnimation?.id, pieceSlideAnimationEnabled) {
         if (pieceSlideAnimationEnabled && lastMoveAnimation != null) {
-            hiddenAnimationId = lastMoveAnimation.id
+            completedAnimationId = null
             delay(PIECE_SLIDE_DURATION_MS.toLong())
-            hiddenAnimationId = null
+            completedAnimationId = lastMoveAnimation.id
         } else {
-            hiddenAnimationId = null
+            completedAnimationId = null
         }
     }
 
@@ -227,9 +230,8 @@ fun ChessBoard(
                     for (col in 0..7) {
                         val position = BoardPosition(row, col)
                         val piece = if (
-                            pieceSlideAnimationEnabled &&
-                            hiddenAnimationId == lastMoveAnimation?.id &&
-                            lastMoveAnimation?.to == position
+                            activeMoveAnimation != null &&
+                            activeMoveAnimation.to == position
                         ) {
                             null
                         } else {
@@ -254,13 +256,9 @@ fun ChessBoard(
             }
         }
 
-        if (
-            pieceSlideAnimationEnabled &&
-            hiddenAnimationId == lastMoveAnimation?.id &&
-            lastMoveAnimation != null
-        ) {
+        if (activeMoveAnimation != null) {
             MovingPieceOverlay(
-                moveAnimation = lastMoveAnimation,
+                moveAnimation = activeMoveAnimation,
                 squareSize = squareSize,
                 selectedPieceSkins = selectedPieceSkins
             )
@@ -335,10 +333,10 @@ fun MovingPieceOverlay(
     squareSize: Dp,
     selectedPieceSkins: Map<PieceSkinKey, PieceSkin>
 ) {
-    val xOffset = remember { Animatable(0f) }
-    val yOffset = remember { Animatable(0f) }
     val startX = (moveAnimation.from.col - moveAnimation.to.col).toFloat()
     val startY = (moveAnimation.from.row - moveAnimation.to.row).toFloat()
+    val xOffset = remember(moveAnimation.id) { Animatable(startX) }
+    val yOffset = remember(moveAnimation.id) { Animatable(startY) }
 
     LaunchedEffect(moveAnimation.id) {
         xOffset.snapTo(startX)
